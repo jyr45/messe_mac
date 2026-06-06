@@ -41,7 +41,63 @@ BTN_HOV   = "#e94560"
 GREEN     = "#2ecc71"
 ORANGE    = "#f39c12"
 
-class QuickButton(tk.Button):
+class StyledButton(tk.Label):
+    def __init__(self, master, text, command=None, bg=BTN_BG, fg=TEXT, font=("Arial", 10, "bold"), pady=6, padx=8, **kwargs):
+        self.state = kwargs.get(\'state\', tk.NORMAL)
+        # Clean kwargs for Label
+        label_kwargs = {k: v for k, v in kwargs.items() if k not in [\'activebackground\', \'activeforeground\', \'command\', \'relief\', \'bd\', \'cursor\', \'pady\', \'padx\', \'state\', \'wraplength\', \'justify\']}
+        
+        super().__init__(master, text=text, bg=bg, fg=fg, font=font, pady=pady, padx=padx, cursor="hand2", relief=tk.FLAT, **label_kwargs)
+        
+        self.command = command
+        self.default_bg = bg
+        self.active_bg = kwargs.get(\'activebackground\', BTN_HOV)
+        self.default_fg = fg
+        self.wraplength = kwargs.get(\'wraplength\', 0)
+        self.justify = kwargs.get(\'justify\', tk.CENTER)
+        
+        if self.wraplength:
+            self.config(wraplength=self.wraplength, justify=self.justify)
+            
+        self.bind("<Button-1>", self._on_click)
+        self.bind("<Enter>", self._on_enter)
+        self.bind("<Leave>", self._on_leave)
+        
+        if self.state == tk.DISABLED:
+            self.config(state=tk.DISABLED)
+
+    def _on_click(self, event=None):
+        if self.state == tk.NORMAL and self.command:
+            self.command()
+
+    def _on_enter(self, event=None):
+        if self.state == tk.NORMAL:
+            super().config(bg=self.active_bg)
+
+    def _on_leave(self, event=None):
+        if self.state == tk.NORMAL:
+            super().config(bg=self.default_bg)
+
+    def config(self, **kwargs):
+        if \'state\' in kwargs:
+            self.state = kwargs[\'state\']
+            if self.state == tk.DISABLED:
+                super().config(fg=TEXT_DIM, cursor="arrow")
+            else:
+                super().config(fg=self.default_fg, cursor="hand2")
+            del kwargs[\'state\']
+        
+        if \'bg\' in kwargs:
+            self.default_bg = kwargs[\'bg\']
+        if \'fg\' in kwargs:
+            self.default_fg = kwargs[\'fg\']
+            
+        super().config(**kwargs)
+
+    def configure(self, **kwargs):
+        self.config(**kwargs)
+
+class QuickButton(StyledButton):
     def __init__(self, master, text, command, display_override=None, **kwargs):
         display = display_override if display_override else (
             text if len(text) <= 22 else text[:20] + "…"
@@ -53,19 +109,13 @@ class QuickButton(tk.Button):
             bg=BTN_BG,
             fg=TEXT,
             activebackground=BTN_HOV,
-            activeforeground="white",
-            relief=tk.FLAT,
-            bd=0,
-            font=("Segoe UI", 10, "bold"),
-            cursor="hand2",
+            font=("Arial", 10, "bold"),
             padx=8,
             pady=6,
             wraplength=220,
             justify="left",
             **kwargs
         )
-        self.bind("<Enter>", lambda e: self.config(bg=BTN_HOV))
-        self.bind("<Leave>", lambda e: self.config(bg=BTN_BG))
 
 class ChatServerV3Mac:
     def __init__(self):
@@ -164,24 +214,24 @@ class ChatServerV3Mac:
         hdr = tk.Frame(self.root, bg=BG3, height=42)
         hdr.pack(fill=tk.X)
         hdr.pack_propagate(False)
-        tk.Label(hdr, text="📡  SERVIDOR v3 (Mac)", bg=BG3, fg=ACCENT, font=("Segoe UI", 11, "bold")).pack(side=tk.LEFT, padx=12, pady=8)
-        tk.Label(hdr, text=self.hostname, bg=BG3, fg=TEXT_DIM, font=("Segoe UI", 9)).pack(side=tk.RIGHT, padx=12)
+        tk.Label(hdr, text="📡  SERVIDOR v3 (Mac)", bg=BG3, fg=ACCENT, font=("Arial", 11, "bold")).pack(side=tk.LEFT, padx=12, pady=8)
+        tk.Label(hdr, text=self.hostname, bg=BG3, fg=TEXT_DIM, font=("Arial", 9)).pack(side=tk.RIGHT, padx=12)
 
         pin_bar = tk.Frame(self.root, bg="#1a5c2e")
         pin_bar.pack(fill=tk.X)
-        self.pin_btn = tk.Button(pin_bar, text="📌 Siempre al frente: ON", command=self.toggle_topmost, bg="#1a5c2e", fg=GREEN, font=("Segoe UI", 8, "bold"), relief=tk.FLAT, bd=0, cursor="hand2", pady=4)
+        self.pin_btn = StyledButton(pin_bar, text="📌 Siempre al frente: ON", command=self.toggle_topmost, bg="#1a5c2e", fg=GREEN, font=("Arial", 8, "bold"), relief=tk.FLAT, bd=0, cursor="hand2", pady=4)
         self.pin_btn.pack(fill=tk.X)
 
         # ── Clientes ─────────────────────────────────────────────────────
-        sec1 = tk.LabelFrame(self.root, text="  Asignación de Roles  ", bg=BG, fg=TEXT_DIM, font=("Segoe UI", 8), bd=1, relief=tk.FLAT, highlightbackground=BG3, highlightthickness=1)
+        sec1 = tk.LabelFrame(self.root, text="  Asignación de Roles  ", bg=BG, fg=TEXT_DIM, font=("Arial", 8), bd=1, relief=tk.FLAT, highlightbackground=BG3, highlightthickness=1)
         sec1.pack(fill=tk.X, padx=10, pady=(8, 4))
 
         self.clients_frame = tk.Frame(sec1, bg=BG)
         self.clients_frame.pack(fill=tk.X, padx=4, pady=4)
-        tk.Label(self.clients_frame, text="Esperando clientes…", bg=BG, fg=TEXT_DIM, font=("Segoe UI", 9)).pack()
+        tk.Label(self.clients_frame, text="Esperando clientes…", bg=BG, fg=TEXT_DIM, font=("Arial", 9)).pack()
 
         # ── Respuestas rápidas ────────────────────────────────────────────
-        sec2 = tk.LabelFrame(self.root, text="  Respuestas rápidas  ", bg=BG, fg=TEXT_DIM, font=("Segoe UI", 8), bd=1, relief=tk.FLAT, highlightbackground=BG3, highlightthickness=1)
+        sec2 = tk.LabelFrame(self.root, text="  Respuestas rápidas  ", bg=BG, fg=TEXT_DIM, font=("Arial", 8), bd=1, relief=tk.FLAT, highlightbackground=BG3, highlightthickness=1)
         sec2.pack(fill=tk.X, padx=10, pady=4)
 
         self.quick_btns_frame = tk.Frame(sec2, bg=BG)
@@ -190,25 +240,25 @@ class ChatServerV3Mac:
 
         row = tk.Frame(sec2, bg=BG)
         row.pack(fill=tk.X, padx=4, pady=(2, 6))
-        self.new_quick_entry = tk.Entry(row, bg=BG2, fg=TEXT, insertbackground=TEXT, font=("Segoe UI", 9), relief=tk.FLAT, highlightthickness=1, highlightbackground=BG3)
+        self.new_quick_entry = tk.Entry(row, bg=BG2, fg=TEXT, insertbackground=TEXT, font=("Arial", 9), relief=tk.FLAT, highlightthickness=1, highlightbackground=BG3)
         self.new_quick_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=4)
         self.new_quick_entry.bind("<Return>", lambda e: self.add_predefined())
-        tk.Button(row, text="+", command=self.add_predefined, bg=GREEN, fg="white", font=("Segoe UI", 9, "bold"), relief=tk.FLAT, bd=0, cursor="hand2", padx=8).pack(side=tk.LEFT, padx=(4, 0))
-        tk.Button(row, text="−", command=self.del_last_predefined, bg=ACCENT, fg="white", font=("Segoe UI", 9, "bold"), relief=tk.FLAT, bd=0, cursor="hand2", padx=8).pack(side=tk.LEFT, padx=(2, 0))
+        StyledButton(row, text="+", command=self.add_predefined, bg=GREEN, fg="white", font=("Arial", 9, "bold"), relief=tk.FLAT, bd=0, cursor="hand2", padx=8).pack(side=tk.LEFT, padx=(4, 0))
+        StyledButton(row, text="−", command=self.del_last_predefined, bg=ACCENT, fg="white", font=("Arial", 9, "bold"), relief=tk.FLAT, bd=0, cursor="hand2", padx=8).pack(side=tk.LEFT, padx=(2, 0))
 
         # ── Redactar ──────────────────────────────────────────────────────
-        sec3 = tk.LabelFrame(self.root, text="  Enviar al Teléfono  ", bg=BG, fg=TEXT_DIM, font=("Segoe UI", 8), bd=1, relief=tk.FLAT, highlightbackground=BG3, highlightthickness=1)
+        sec3 = tk.LabelFrame(self.root, text="  Enviar al Teléfono  ", bg=BG, fg=TEXT_DIM, font=("Arial", 8), bd=1, relief=tk.FLAT, highlightbackground=BG3, highlightthickness=1)
         sec3.pack(fill=tk.X, padx=10, pady=4)
-        self.me = tk.Entry(sec3, bg=BG2, fg=TEXT, insertbackground=TEXT, font=("Segoe UI", 11), relief=tk.FLAT, highlightthickness=1, highlightbackground=BG3)
+        self.me = tk.Entry(sec3, bg=BG2, fg=TEXT, insertbackground=TEXT, font=("Arial", 11), relief=tk.FLAT, highlightthickness=1, highlightbackground=BG3)
         self.me.pack(fill=tk.X, padx=6, pady=(6, 4), ipady=5)
         self.me.bind("<Return>", lambda e: self.send_to_selected())
-        send_btn = tk.Button(sec3, text="▶  ENVIAR AL TELÉFONO", command=self.send_to_selected, bg=GREEN, fg="white", font=("Segoe UI", 10, "bold"), relief=tk.FLAT, bd=0, cursor="hand2", pady=7)
+        send_btn = StyledButton(sec3, text="▶  ENVIAR AL TELÉFONO", command=self.send_to_selected, bg=GREEN, fg="white", font=("Arial", 10, "bold"), relief=tk.FLAT, bd=0, cursor="hand2", pady=7)
         send_btn.pack(fill=tk.X, padx=6, pady=(0, 8))
 
         # ── Herramientas ──────────────────────────────────────────────────
-        sec4 = tk.LabelFrame(self.root, text="  Captura (Laptop)  ", bg=BG, fg=TEXT_DIM, font=("Segoe UI", 8), bd=1, relief=tk.FLAT, highlightbackground=BG3, highlightthickness=1)
+        sec4 = tk.LabelFrame(self.root, text="  Captura (Laptop)  ", bg=BG, fg=TEXT_DIM, font=("Arial", 8), bd=1, relief=tk.FLAT, highlightbackground=BG3, highlightthickness=1)
         sec4.pack(fill=tk.X, padx=10, pady=(4, 10))
-        ocr_btn = tk.Button(sec4, text="📷  Capturar pantalla de Laptop", command=self.request_screenshot_and_ocr, bg=ACCENT2, fg="white", font=("Segoe UI", 9, "bold"), relief=tk.FLAT, bd=0, cursor="hand2", pady=8)
+        ocr_btn = StyledButton(sec4, text="📷  Capturar pantalla de Laptop", command=self.request_screenshot_and_ocr, bg=ACCENT2, fg="white", font=("Arial", 9, "bold"), relief=tk.FLAT, bd=0, cursor="hand2", pady=8)
         ocr_btn.pack(fill=tk.X, padx=6, pady=6)
 
     def bind_hotkeys(self):
@@ -277,14 +327,14 @@ class ChatServerV3Mac:
     def update_client_list(self):
         for w in self.clients_frame.winfo_children(): w.destroy()
         if not self.discovered_clients:
-            tk.Label(self.clients_frame, text="Esperando clientes…", bg=BG, fg=TEXT_DIM, font=("Segoe UI", 9)).pack()
+            tk.Label(self.clients_frame, text="Esperando clientes…", bg=BG, fg=TEXT_DIM, font=("Arial", 9)).pack()
             return
         
         header = tk.Frame(self.clients_frame, bg=BG)
         header.pack(fill=tk.X)
-        tk.Label(header, text="Dispositivo", bg=BG, fg=TEXT_DIM, font=("Segoe UI", 8, "bold"), width=12, anchor="w").pack(side=tk.LEFT, padx=2)
-        tk.Label(header, text="💻 Lap", bg=BG, fg=TEXT_DIM, font=("Segoe UI", 8, "bold"), width=6).pack(side=tk.LEFT)
-        tk.Label(header, text="📱 Tel", bg=BG, fg=TEXT_DIM, font=("Segoe UI", 8, "bold"), width=6).pack(side=tk.LEFT)
+        tk.Label(header, text="Dispositivo", bg=BG, fg=TEXT_DIM, font=("Arial", 8, "bold"), width=12, anchor="w").pack(side=tk.LEFT, padx=2)
+        tk.Label(header, text="💻 Lap", bg=BG, fg=TEXT_DIM, font=("Arial", 8, "bold"), width=6).pack(side=tk.LEFT)
+        tk.Label(header, text="📱 Tel", bg=BG, fg=TEXT_DIM, font=("Arial", 8, "bold"), width=6).pack(side=tk.LEFT)
 
         for h in sorted(self.discovered_clients.keys()):
             row = tk.Frame(self.clients_frame, bg=BG2, pady=2)
@@ -292,13 +342,13 @@ class ChatServerV3Mac:
             
             info_frame = tk.Frame(row, bg=BG2)
             info_frame.pack(side=tk.LEFT, fill=tk.X, expand=True)
-            tk.Label(info_frame, text=h, bg=BG2, fg=TEXT, font=("Segoe UI", 9, "bold"), anchor="w").pack(fill=tk.X)
-            tk.Label(info_frame, text=self.discovered_clients[h][0], bg=BG2, fg=TEXT_DIM, font=("Segoe UI", 7), anchor="w").pack(fill=tk.X)
+            tk.Label(info_frame, text=h, bg=BG2, fg=TEXT, font=("Arial", 9, "bold"), anchor="w").pack(fill=tk.X)
+            tk.Label(info_frame, text=self.discovered_clients[h][0], bg=BG2, fg=TEXT_DIM, font=("Arial", 7), anchor="w").pack(fill=tk.X)
             
             tk.Radiobutton(row, variable=self.laptop_target, value=h, bg=BG2, activebackground=BG2, selectcolor=BG3).pack(side=tk.LEFT, padx=10)
             tk.Radiobutton(row, variable=self.phone_target, value=h, bg=BG2, activebackground=BG2, selectcolor=BG3).pack(side=tk.LEFT, padx=10)
             
-            tk.Label(row, text="●", bg=BG2, fg=GREEN, font=("Segoe UI", 8)).pack(side=tk.RIGHT, padx=4)
+            tk.Label(row, text="●", bg=BG2, fg=GREEN, font=("Arial", 8)).pack(side=tk.RIGHT, padx=4)
 
     def cleanup_clients(self):
         while self.running:
@@ -372,16 +422,16 @@ class ChatServerV3Mac:
         if pil_img.width > max_w or pil_img.height > max_h: display_img.thumbnail((max_w, max_h), Image.LANCZOS)
         tk_img = ImageTk.PhotoImage(display_img)
         toolbar = tk.Frame(viewer, bg=BG3, height=40); toolbar.pack(fill=tk.X); toolbar.pack_propagate(False)
-        tk.Label(toolbar, text="Arrastra para seleccionar área → OCR", bg=BG3, fg=TEXT_DIM, font=("Segoe UI", 9)).pack(side=tk.LEFT, padx=10)
+        tk.Label(toolbar, text="Arrastra para seleccionar área → OCR", bg=BG3, fg=TEXT_DIM, font=("Arial", 9)).pack(side=tk.LEFT, padx=10)
         
         canvas = tk.Canvas(viewer, width=display_img.width, height=display_img.height, bg=BG, highlightthickness=0, cursor="crosshair")
         canvas.pack(); canvas.create_image(0, 0, anchor=tk.NW, image=tk_img); canvas.image = tk_img
         bottom = tk.Frame(viewer, bg=BG2); bottom.pack(fill=tk.X)
-        ocr_label = tk.Label(bottom, text="Selecciona un área para extraer texto…", bg=BG2, fg=TEXT_DIM, font=("Segoe UI", 9), anchor="w", padx=10)
+        ocr_label = tk.Label(bottom, text="Selecciona un área para extraer texto…", bg=BG2, fg=TEXT_DIM, font=("Arial", 9), anchor="w", padx=10)
         ocr_label.pack(side=tk.LEFT, fill=tk.X, expand=True, pady=6)
-        copy_btn = tk.Button(bottom, text="📋 Copiar", bg=BTN_BG, fg=TEXT, font=("Segoe UI", 9), relief=tk.FLAT, bd=0, cursor="hand2", padx=8, pady=4, state=tk.DISABLED)
+        copy_btn = StyledButton(bottom, text="📋 Copiar", bg=BTN_BG, fg=TEXT, font=("Arial", 9), relief=tk.FLAT, bd=0, cursor="hand2", padx=8, pady=4, state=tk.DISABLED)
         copy_btn.pack(side=tk.RIGHT, padx=6, pady=4)
-        send_ocr_btn = tk.Button(bottom, text="▶ Enviar al Teléfono", bg=GREEN, fg="white", font=("Segoe UI", 9, "bold"), relief=tk.FLAT, bd=0, cursor="hand2", padx=8, pady=4, state=tk.DISABLED)
+        send_ocr_btn = StyledButton(bottom, text="▶ Enviar al Teléfono", bg=GREEN, fg="white", font=("Arial", 9, "bold"), relief=tk.FLAT, bd=0, cursor="hand2", padx=8, pady=4, state=tk.DISABLED)
         send_ocr_btn.pack(side=tk.RIGHT, padx=2, pady=4)
         viewer.rect = None; viewer.start_x = viewer.start_y = None; self._last_ocr_text = ""
         def on_press(e):
