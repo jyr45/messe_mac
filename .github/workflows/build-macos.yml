@@ -25,11 +25,26 @@ jobs:
 
     - name: Build with PyInstaller (.app bundle)
       run: |
-        # Usamos --windowed y --noconfirm para generar el .app
         pyinstaller --noconfirm --windowed --name "MensajeServidor_Mac_v3" server_mac_v3.py
 
-    - name: Upload Artifact (.app)
+    - name: Create DMG
+      run: |
+        # Instalamos una herramienta para crear DMGs fácilmente
+        brew install create-dmg
+        mkdir -p dist/dmg
+        create-dmg \
+          --volname "Mensaje Servidor Installer" \
+          --window-pos 200 120 \
+          --window-size 800 400 \
+          --icon-size 100 \
+          --icon "MensajeServidor_Mac_v3.app" 200 190 \
+          --hide-extension "MensajeServidor_Mac_v3.app" \
+          --app-drop-link 600 185 \
+          "dist/MensajeServidor_Mac_v3.dmg" \
+          "dist/MensajeServidor_Mac_v3.app"
+
+    - name: Upload Artifact (DMG)
       uses: actions/upload-artifact@v4
       with:
-        name: MensajeServidor_Mac_v3_App
-        path: dist/MensajeServidor_Mac_v3.app
+        name: MensajeServidor_Mac_v3_DMG
+        path: dist/MensajeServidor_Mac_v3.dmg
