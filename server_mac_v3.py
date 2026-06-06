@@ -43,18 +43,18 @@ ORANGE    = "#f39c12"
 
 class StyledButton(tk.Label):
     def __init__(self, master, text, command=None, bg=BTN_BG, fg=TEXT, font=("Arial", 10, "bold"), pady=6, padx=8, **kwargs):
-        self.state = kwargs.get(\'state\', tk.NORMAL)
+        self.state = kwargs.get('state', tk.NORMAL)
         # Clean kwargs for Label
-        label_kwargs = {k: v for k, v in kwargs.items() if k not in [\'activebackground\', \'activeforeground\', \'command\', \'relief\', \'bd\', \'cursor\', \'pady\', \'padx\', \'state\', \'wraplength\', \'justify\']}
+        label_kwargs = {k: v for k, v in kwargs.items() if k not in ['activebackground', 'activeforeground', 'command', 'relief', 'bd', 'cursor', 'pady', 'padx', 'state', 'wraplength', 'justify']}
         
         super().__init__(master, text=text, bg=bg, fg=fg, font=font, pady=pady, padx=padx, cursor="hand2", relief=tk.FLAT, **label_kwargs)
         
         self.command = command
         self.default_bg = bg
-        self.active_bg = kwargs.get(\'activebackground\', BTN_HOV)
+        self.active_bg = kwargs.get('activebackground', BTN_HOV)
         self.default_fg = fg
-        self.wraplength = kwargs.get(\'wraplength\', 0)
-        self.justify = kwargs.get(\'justify\', tk.CENTER)
+        self.wraplength = kwargs.get('wraplength', 0)
+        self.justify = kwargs.get('justify', tk.CENTER)
         
         if self.wraplength:
             self.config(wraplength=self.wraplength, justify=self.justify)
@@ -79,18 +79,18 @@ class StyledButton(tk.Label):
             super().config(bg=self.default_bg)
 
     def config(self, **kwargs):
-        if \'state\' in kwargs:
-            self.state = kwargs[\'state\']
+        if 'state' in kwargs:
+            self.state = kwargs['state']
             if self.state == tk.DISABLED:
                 super().config(fg=TEXT_DIM, cursor="arrow")
             else:
                 super().config(fg=self.default_fg, cursor="hand2")
-            del kwargs[\'state\']
+            del kwargs['state']
         
-        if \'bg\' in kwargs:
-            self.default_bg = kwargs[\'bg\']
-        if \'fg\' in kwargs:
-            self.default_fg = kwargs[\'fg\']
+        if 'bg' in kwargs:
+            self.default_bg = kwargs['bg']
+        if 'fg' in kwargs:
+            self.default_fg = kwargs['fg']
             
         super().config(**kwargs)
 
