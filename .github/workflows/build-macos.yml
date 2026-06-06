@@ -23,12 +23,13 @@ jobs:
         brew install tesseract
         pip install pytesseract Pillow requests mss pyinstaller
 
-    - name: Build with PyInstaller
+    - name: Build with PyInstaller (.app bundle)
       run: |
-        pyinstaller --onefile --windowed --name "MensajeServidor_Mac_v3" server_mac_v3.py
+        # Usamos --windowed y --noconfirm para generar el .app
+        pyinstaller --noconfirm --windowed --name "MensajeServidor_Mac_v3" server_mac_v3.py
 
-    - name: Upload Artifact
+    - name: Upload Artifact (.app)
       uses: actions/upload-artifact@v4
       with:
-        name: MensajeServidor_Mac_v3
-        path: dist/MensajeServidor_Mac_v3
+        name: MensajeServidor_Mac_v3_App
+        path: dist/MensajeServidor_Mac_v3.app
